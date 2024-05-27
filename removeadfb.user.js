@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Facebook Feed Cleaner
 // @namespace    http://oiioioiiioooioio.download
-// @version      1.0
+// @version      1.1
 // @description  Cleans up the Facebook feed by removing sponsored and suggested posts
 // @author       NEXT
 // @match        *://*.facebook.com/*
@@ -12,10 +12,21 @@
 (function () {
   "use strict";
 
-  let showLog = false;
-  let showCountMessage = true;
+  function randomString(length) {
+    let result = "";
+    let characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
 
-  let countList = [
+  let show_log = false;
+  let show_count_message = true;
+
+  let count_list = [
     { name: "sponsor", value: GM_getValue("sponsor", 0) },
     { name: "sidebar", value: GM_getValue("sidebar", 0) },
     { name: "suggest", value: GM_getValue("suggest", 0) },
@@ -69,16 +80,17 @@
         targetArray.forEach((target) => {
           let removeTarget = target.closest("div[role='article']");
           if (removeTarget) {
-            if (showCountMessage) countList[0].value++;
-            if (!showLog) return removeTarget.remove();
+            if (show_count_message) count_list[0].value++;
+            if (!show_log) return removeTarget.remove();
 
             removeTarget.style.display = "none";
             let message = document.createElement("div");
-            message.innerHTML = "Sponsored post removed";
+            message.innerHTML = "Sponsored post removed : Ref " + randomString(5);
             message.style.color = "red";
             message.style.fontSize = "12px";
             message.style.margin = "10px";
             removeTarget.parentNode.insertBefore(message, removeTarget);
+            removeTarget.removeAttribute("role");
           }
         });
       }
@@ -102,12 +114,12 @@
       ) {
         let removeTarget = t.closest("div[aria-posinset]");
         if (removeTarget) {
-          if (showCountMessage) countList[2].value++;
-          if (!showLog) return removeTarget.remove();
+          if (show_count_message) count_list[2].value++;
+          if (!show_log) return removeTarget.remove();
 
           removeTarget.style.display = "none";
           let message = document.createElement("div");
-          message.innerHTML = "Suggested post removed";
+          message.innerHTML = "Suggested post removed : Ref " + randomString(5);
           message.style.color = "red";
           message.style.fontSize = "12px";
           message.style.margin = "10px";
@@ -126,16 +138,17 @@
           if (nodes[i].firstElementChild == null) {
             let removeTarget = t.closest("div[aria-posinset]");
             if (removeTarget) {
-              if (showCountMessage) countList[2].value++;
-              if (!showLog) return removeTarget.remove();
+              if (show_count_message) count_list[2].value++;
+              if (!show_log) return removeTarget.remove();
 
               removeTarget.style.display = "none";
               let message = document.createElement("div");
-              message.innerHTML = "Suggested post removed";
+              message.innerHTML = "Suggested post removed : Ref " + randomString(5);
               message.style.color = "red";
               message.style.fontSize = "12px";
               message.style.margin = "10px";
               removeTarget.parentNode.insertBefore(message, removeTarget);
+
             }
             break;
           }
@@ -158,8 +171,8 @@
 
       let removeTarget = t.closest("div[aria-posinset]");
       if (removeTarget) {
-        if (showCountMessage) countList[3].value++;
-        if (!showLog) return removeTarget.remove();
+        if (show_count_message) count_list[3].value++;
+        if (!show_log) return removeTarget.remove();
 
         removeTarget.style.display = "none";
         let message = document.createElement("div");
@@ -168,6 +181,7 @@
         message.style.fontSize = "12px";
         message.style.margin = "10px";
         removeTarget.parentNode.insertBefore(message, removeTarget);
+
       }
     });
   }
@@ -186,14 +200,15 @@
             ":scope > div:not([data-visualcompletion='ignore-dynamic'])"
           )
           .forEach(function (e) {
-            if (showCountMessage) countList[1].value++;
+            if (show_count_message) count_list[1].value++;
             e.style.display = "none";
             let message = document.createElement("div");
-            message.innerHTML = "Right sidebar ad removed";
+            message.innerHTML = "Right sidebar ad removed : Ref " + randomString(5);
             message.style.color = "red";
             message.style.fontSize = "12px";
             message.style.margin = "10px";
             e.parentNode.insertBefore(message, e);
+
           });
       }
     }
@@ -202,14 +217,14 @@
   function showCountRemove() {
     let footer = document.querySelector("footer[aria-label='Facebook']");
     if (footer != null) {
-      let count = countList.reduce((acc, cur) => acc + cur.value, 0);
+      let count = count_list.reduce((acc, cur) => acc + cur.value, 0);
       let existingMessage = footer.querySelector(".count-message");
       if (existingMessage) {
-        existingMessage.innerHTML = `Removed Posts: Sponsored(${countList[0].value}), Sidebar(${countList[1].value}), Suggested(${countList[2].value}), Reel(${countList[3].value})`;
+        existingMessage.innerHTML = `Removed Posts: Sponsored(${count_list[0].value}), Sidebar(${count_list[1].value}), Suggested(${count_list[2].value}), Reel(${count_list[3].value})`;
       } else {
         let message = document.createElement("div");
         message.className = "count-message";
-        message.innerHTML = `Removed Posts: Sponsored(${countList[0].value}), Sidebar(${countList[1].value}), Suggested(${countList[2].value}), Reel(${countList[3].value})`;
+        message.innerHTML = `Removed Posts: Sponsored(${count_list[0].value}), Sidebar(${count_list[1].value}), Suggested(${count_list[2].value}), Reel(${count_list[3].value})`;
         message.style.color = "red";
         message.style.fontSize = "12px";
         message.style.marginTop = "10px";
@@ -223,7 +238,7 @@
     removeSuggestedPost();
     removeReel();
     removeRightSidebarAdvertisement();
-    if (showCountMessage) showCountRemove();
+    if (show_count_message) showCountRemove();
   }
 
   retrieveConfiguration();
